@@ -1,3 +1,7 @@
+npm init
+npm i express mongoose cors
+npm i -D nodemon
+
 //转到 /home 去，localhost:3000/ == localhost:3000/home
 app.get('/', (req, res) => {
     res.redirect('/home');
