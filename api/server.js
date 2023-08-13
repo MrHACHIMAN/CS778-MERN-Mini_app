@@ -1,66 +1,56 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const TBoard = require('./models/TBoardModel');
-const moment = require('moment');
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const TBoard = require("./models/TBoardModel");
+const moment = require("moment");
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb://127.0.0.1:27017/mini_app", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-}).then(result => {
-    console.log("Connected to Mongo Success");
-}).catch(err => {
-    console.log(err);
-});
-
-//转到 /home 去
-app.get('/', (req, res) => {
-    res.redirect('/home');
-})
-
-//获取所有
-app.get('/home', (req, res) => {
-    TBoard.find().then(result => {
-        res.json(result);
-    }).catch(err => {
-        console.log(err);
+mongoose
+    .connect("mongodb://127.0.0.1:27017/mini_app", {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
     })
+    .then(() => {
+        console.log("Connected to Database");
+    })
+    .catch(console.error);
+
+app.get("/todos", async (req, res) => {
+    const todos = await TBoard.find();
+
+    res.json(todos);
 });
 
-//指定id获取
-app.post('/home/addNew', (req, res) => {
-    const tbBoard = new TBoard({
+app.post("/todo/new", (req, res) => {
+    const todo = new TBoard({
         text: req.body.text,
-        Time: moment(req.body.time).toDate()
     });
-    tbBoard.save().then(result => {
-        console.log("add success");
-    }).catch(err => {
-        console.log('error');
-    });
-    res.json(tbBoard);
+
+    todo.save();
+
+    res.json(todo);
 });
 
-app.delete('/home/delete/:id', async (req, res) => {
+app.delete("/todo/delete/:id", async (req, res) => {
     const result = await TBoard.findByIdAndDelete(req.params.id);
-    res.json(result);
-    console.log("delete success");
-})
 
-//做完的task划线
-app.put('/home/done/:id', async (req, res) => {
-    const result = await TBoard.findById(req.params.id);
-    result.Done = !result.Done;
-    result.save();
-    res.json(result);
-    console.log("task done");
+    res.json({result});
 });
 
-app.listen(3000, () => {
-    console.log("Start at port 3000");
+app.get('/todo/complete/:id', async (req, res) => {
+    const todo = await TBoard.findById(req.params.id);
+
+    todo.Done = !todo.Done;
+
+    todo.save();
+
+    res.json(todo);
+});
+
+app.listen(3001, () => {
+    console.log("Server started on port 3001");
 });
